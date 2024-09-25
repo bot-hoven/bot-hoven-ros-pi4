@@ -23,7 +23,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     if len(sys.argv) != 2:
-        print("Usage: python publisher.py <device_name>")
+        print("Usage: python subscriber.py <device_name>")
         sys.exit(1)
 
     device_name = sys.argv[1]
