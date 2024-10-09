@@ -1,0 +1,370 @@
+docker run -it --name ros2_humble_container -e ROS_DOMAIN_ID=42 -v /home/pi/Desktop/pi_test:/mnt/pi_data --privileged --net=host arm64v8/ros:humble
+
+
+
+docker start ros2_humble_container
+docker exec -it ros2_humble_container bash
+
+Download Raspberry Pi Imager from: 
+    https://downloads.raspberrypi.org/imager/imager_latest_amd64.deb
+
+Follow this tutorial to setup the Ubuntu image on the Pi: 
+    https://roboticsbackend.com/install-ubuntu-on-raspberry-pi-without-monitor/#:~:text=Select%20the%20OS%20Image%20and%20micro%20SD%20card&text=On%20the%20Raspberry%20Pi%20Imager,should%20find%20your%20microSD%20card.
+
+Setup the Pi with Regional settings
+    Username: pi
+    Password: rpi
+
+Wifi settings if available and then 
+    sudo apt update
+
+To enable SSH:
+    sudo systemctl enable ssh
+    sudo systemctl start ssh
+
+Verify SSH is running:
+    sudo systemctl status ssh
+    
+To connect from laptop to Pi via SSH:
+    ssh pi@192.168.2.3
+
+Set connection settings for direct Ethernet:
+    Go to wired connection settings
+    in ipv4 setting set the following
+    IP Address: 192.168.2.3 (Sweet Potato will be 192.168.2.2)
+    Subnet Mask: 255.255.255.0 (or 24)
+    Gateway: 192.168.2.1 (This is the Laptop's assigned IP, will be used for internet forwarding)
+    
+
+    
+Configuring the Gateway for Internet (on laptop):
+    sudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE
+    sudo iptables -A FORWARD -i eth0 -o wlo1 -j ACCEPT
+    sudo iptables -A FORWARD -i wlo1 -o eth0 -m state --state RELATED,ESTABLISHED
+    sudo sysctl -w net.ipv4.ip_forward=1 
+    
+Install GitHub with CLI:
+    sudo apt update
+    sudo apt install gh
+    
+    gh auth login
+    >Github.com
+    >SSH
+    Create new token????
+    Title for SSH Key: Alo-RPi		
+    >Paste an Authentication Token
+    
+    1. Generate a Personal Access Token on GitHub
+    
+Log in to GitHub: Go to GitHub.com and log in to your account.
+
+Navigate to Developer Settings:
+In the top-right corner of any page, click on your profile photo and select Settings.
+Scroll down in the left-hand sidebar, and click Developer settings.
+
+Generate a Token:
+Click on Personal access tokens in the sidebar, then click Tokens (classic).
+Click Generate new token.
+
+Configure the Token:
+
+Give your token a descriptive name.
+Set the expiration (how long the token will be valid). For longer usage, you can set it to "No expiration", but be cautious with security.
+Select the scopes or permissions you'd like the token to have, based on what you need:
+For most operations like pushing to a repository, you’ll need the repo scope.
+If you're working with organizations, you might need workflow, admin:org, or other organization-specific permissions.
+Generate the Token:
+
+Once you’ve selected the scopes, click Generate token.
+Copy the token: GitHub will only show this token once, so copy it and save it in a secure location like a password manager.
+    
+Installing ROS2 with Docker:    
+    https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
+    # Usage
+# ==============================================================================
+#
+# To install the latest stable versions of Docker CLI, Docker Engine, and their
+# dependencies:
+#
+# 1. download the script
+#
+#   $ curl -fsSL https://get.docker.com -o install-docker.sh
+#
+# 2. verify the script's content
+#
+#   $ cat install-docker.sh
+#
+# 3. run the script with --dry-run to verify the steps it executes
+#
+#   $ sh install-docker.sh --dry-run
+#
+# 4. run the script either as root, or using sudo to perform the installation.
+#
+#   $ sudo sh install-docker.sh
+
+Clone the docker_images git repo onto the Raspberry Pi, change in to the directory linked above, then to the directory with your preferred variant.
+    gh repo clone osrf/docker_images
+    cd docker_images/
+    docker build -t ros_docker .
+
+????? DOUBLE CHECK THIS STUFF????
+
+After docker is installed
+    docker run hello-world (test if its working)
+
+Installing ROS2 Humble Hawksbill (base)
+    docker pull arm64v8/ros:humble
+
+-----Getting the py nodes and running on Docker / building ROS2 package
+
+Run Docker container:
+    docker run -it --name ros2_humble_container -e ROS_DOMAIN_ID=42 -v /home/pi/Desktop/pi_test:/mnt/pi_data --privileged --net=host arm64v8/ros:humble
+
+Install Python + build tools:
+    apt update
+    apt install -y python3-colcon-common-extensions
+
+Create the workspace:
+    mkdir -p ~/ros2_ws/src
+    cd ~/ros2_ws
+    colcon build  [Might be unnecessary]
+
+Create the ROS2 package:
+    cd ~/ros2_ws/src
+    ros2 pkg create ros2_gpio_uart_motor_pkg --build-type ament_python
+
+Copy the local python nodes:
+    mkdir -p ~/ros2_ws/src/ros2_gpio_uart_motor_pkg/src/
+    cp /mnt/pi_data/scripts/*.py ~/ros2_ws/src/ros2_gpio_uart_motor_pkg/ros2_gpio_uart_motor_pkg/
+
+Set Python files as entry points and dependancies:
+    cd ~/ros2_ws/src/ros2_gpio_uart_motor_pkg
+    nano setup.py
+
+Modify as follows:
+from setuptools import find_packages, setup
+
+package_name = 'ros2_gpio_uart_motor_pkg'
+
+setup(
+    name=package_name,
+    version='0.0.0',
+    packages=find_packages(exclude=['test']),
+    data_files=[
+        ('share/ament_index/resource_index/packages',
+            ['resource/' + package_name]),
+        ('share/' + package_name, ['package.xml']),
+    ],
+    install_requires=['setuptools'],
+    zip_safe=True,
+    maintainer='root',
+    maintainer_email='root@todo.todo',
+    description='ROS2 GPIO, UART, and Motor Test Package',
+    license='Apache License 2.0',
+    tests_require=['pytest'],
+    entry_points={
+        'console_scripts': [
+            'gpio_node = ros2_gpio_uart_motor_pkg.gpio_node:main',
+        ],
+    },
+)
+
+cd ~/ros2_ws/src/ros2_gpio_uart_motor_pkg
+    nano package.xml
+
+Modify as follows:
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematyp>
+<package format="3">
+  <name>ros2_gpio_uart_motor_pkg</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="root@todo.todo">root</maintainer>
+  <license>Apache License 2.0</license>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>rclpy</build_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>RPi.GPIO</exec_depend>  <!-- For Raspberry Pi GPIO -->
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
+
+Get dependencies (install pip):
+    apt update
+    apt install python3-pip -y
+    pip install RPi.GPIO
+
+Build the ROS2 package:
+    cd ~/ros2_ws
+    colcon build
+
+Run the ROS2 Nodes:
+    export ROS_DOMAIN_ID=42
+    source ~/ros2_ws/install/setup.bash
+    ros2 run ros2_gpio_uart_motor_pkg gpio_node
+
+
+///////////// IGNORE COMMENTS BELOW THIS LINE ////////////
+
+
+
+ros2 launch ros2_gpio_uart_motor_pkg launch_file.py
+
+
+
+### Step 7: GitHub Integration
+If you want to use GitHub for version control:
+
+1. **Outside Docker**, initialize a Git repository in your `pi_test` directory if not done already:
+   ```bash
+   cd ~/Desktop/pi_test
+   git init
+   git remote add origin <your-git-repo-url>
+   ```
+
+2. Add the ROS2 workspace (`ros2_ws/src`) to this Git repository for version control. Inside the ROS2 workspace:
+   ```bash
+   git add .
+   git commit -m "Initial commit"
+   git push origin main
+   ```
+
+3. **Workflow for updates**:
+   - Edit the files locally (outside Docker).
+   - Push the changes to GitHub.
+   - In Docker, pull the latest changes:
+     ```bash
+     cd /mnt/pi_data
+     git pull
+     ```
+
+4. Rebuild the package with:
+   ```bash
+   cd ~/ros2_ws
+   colcon build
+   ```
+
+
+
+
+To persist the installation of packages like `RPi.GPIO` or any other dependencies in a Docker container, you need to create a custom Docker image that has these packages pre-installed. This way, every time you run a new container from that image, the required packages will already be installed.
+
+Here's a step-by-step guide to creating a custom Docker image with `RPi.GPIO` and any other packages installed:
+
+### 1. Create a Dockerfile
+
+The `Dockerfile` defines what goes into your custom Docker image. You’ll start by extending the base `ROS2 Humble` image and then install `RPi.GPIO` and any other necessary dependencies.
+
+Create a file named `Dockerfile` in your project directory with the following content:
+
+```Dockerfile
+# Use the ROS2 Humble base image for Raspberry Pi
+FROM arm64v8/ros:humble
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y python3-pip \
+    && pip3 install RPi.GPIO \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy your ROS2 workspace (optional, if you want to include your ROS2 package in the image)
+COPY ./ros2_ws /root/ros2_ws
+
+# Set the working directory
+WORKDIR /root/ros2_ws
+
+# Source the ROS2 installation
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
+
+# Source the ROS2 workspace upon container start
+CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && /bin/bash"]
+```
+
+### Explanation:
+- **FROM arm64v8/ros:humble**: Uses the ROS2 Humble base image for the Raspberry Pi (ARM architecture).
+- **RUN apt-get update && apt-get install -y python3-pip**: Updates the package list and installs `pip`.
+- **pip3 install RPi.GPIO**: Installs the `RPi.GPIO` library using `pip`.
+- **COPY ./ros2_ws /root/ros2_ws**: Optionally copies your ROS2 workspace into the container (you can skip this if you plan to mount your workspace).
+- **colcon build**: Builds the ROS2 workspace during the image build process.
+- **CMD**: Sets the default command for when the container starts, ensuring that ROS2 and the workspace are sourced.
+
+### 2. Build the Docker Image
+
+Once you have the `Dockerfile` ready, you can build your custom image:
+
+```bash
+docker build -t ros2_humble_custom .
+```
+
+This command will create an image named `ros2_humble_custom` with `RPi.GPIO` installed and the workspace built (if included).
+
+### 3. Run a Container from the Custom Image
+
+After the image is built, you can run a new container from it:
+
+```bash
+docker run -it --name ros2_humble_container -v /home/pi/Desktop/pi_test:/mnt/pi_data ros2_humble_custom
+```
+
+This command mounts your local workspace to `/mnt/pi_data` inside the container, allowing you to edit files on your host machine while running them in the container.
+
+### 4. Rebuilding and Updating the Image
+
+Whenever you need to add more dependencies (e.g., new Python packages or system libraries), you can update the `Dockerfile` by adding additional `RUN` or `pip3 install` commands. For example, to add the `spidev` package for SPI functionality:
+
+```Dockerfile
+RUN pip3 install spidev
+```
+
+Then, rebuild the image with the same `docker build` command:
+
+```bash
+docker build -t ros2_humble_custom .
+```
+
+This will update the image, and the next time you start a container from it, the new packages will be available.
+
+### 5. Pushing to Docker Hub (Optional)
+
+If you want to share your custom image across multiple machines, you can push it to Docker Hub:
+
+1. Log in to Docker Hub:
+
+    ```bash
+    docker login
+    ```
+
+2. Tag your image:
+
+    ```bash
+    docker tag ros2_humble_custom your_dockerhub_username/ros2_humble_custom
+    ```
+
+3. Push it to Docker Hub:
+
+    ```bash
+    docker push your_dockerhub_username/ros2_humble_custom
+    ```
+
+This allows you to pull the image on another Raspberry Pi or any other machine using:
+
+```bash
+docker pull your_dockerhub_username/ros2_humble_custom
+```
+
+This method ensures that the `RPi.GPIO` library and any other dependencies are always pre-installed and ready to go, saving time and ensuring consistency.
+
+Let me know if you need further clarification on any step!
+
+    
+
+
+
+
