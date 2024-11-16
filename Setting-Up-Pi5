@@ -1,40 +1,46 @@
-Download Raspberry Pi Imager from: 
-    https://downloads.raspberrypi.org/imager/imager_latest_amd64.deb
+Write the image to the SD Card:
 
-Follow this tutorial to setup the Ubuntu image on the Pi: 
-    https://roboticsbackend.com/install-ubuntu-on-raspberry-pi-without-monitor/#:~:text=Select%20the%20OS%20Image%20and%20micro%20SD%20card&text=On%20the%20Raspberry%20Pi%20Imager,should%20find%20your%20microSD%20card.
+    Download Raspberry Pi Imager from: 
+        https://downloads.raspberrypi.org/imager/imager_latest_amd64.deb
 
-Setup the Pi with Regional settings
-    Username: pi
-    Password: rpi
+    For operating system choose Other general-purpose OS -> Ubuntu -> Ubuntu Server 22.04.1 LTS (64-Bit)
+    For storage choose the SD card
+
+    Go to the settings tab:
+        Setup the SSH and stuff
+
+    Press write and wait...
+
+Manually setup the direct LAN connection settings:
+
+    Mount the SD card from your laptop
+    Open the file writable/etc/netplan/50-cloud-init.yaml
+
+    You may need to open a terminal in the folder writable/etc/netplan and then use the command
+    sudo nano 50-cloud-init.yaml
+
+    Change the file to be:
+    network:
+    version: 2
+    ethernets:
+        eth0:
+        dhcp4: false
+        addresses: [192.168.2.4/24]
+        gateway4: 192.168.2.1
+        nameservers:
+            addresses: [8.8.8.8, 8.8.4.4]
+
+Connect to the Pi via SSH:
+
+    Insert the SD card and connect the LAN cable from the PC to the Pi
+
+    ssh pi@192.168.2.4
+
+    enter the password "rpi"
 
 Wifi settings if available and then 
     sudo apt update
-
-To enable SSH:
-    sudo systemctl enable ssh
-    sudo systemctl start ssh
-
-Verify SSH is running:
-    sudo systemctl status ssh
     
-To connect from laptop to Pi via SSH:
-    ssh pi@192.168.2.3
-
-Set connection settings for direct Ethernet:
-    Go to wired connection settings
-    in ipv4 setting set the following
-    IP Address: 192.168.2.3 (Sweet Potato will be 192.168.2.2)
-    Subnet Mask: 255.255.255.0 (or 24)
-    Gateway: 192.168.2.1 (This is the Laptop's assigned IP, will be used for internet forwarding)
-    
-
-    
-Configuring the Gateway for Internet (on laptop):
-    sudo iptables -t nat -A POSTROUTING -o wlo1 -j MASQUERADE
-    sudo iptables -A FORWARD -i eth0 -o wlo1 -j ACCEPT
-    sudo iptables -A FORWARD -i wlo1 -o eth0 -m state --state RELATED,ESTABLISHED
-    sudo sysctl -w net.ipv4.ip_forward=1 
     
 Install GitHub with CLI:
     sudo apt update
@@ -43,8 +49,8 @@ Install GitHub with CLI:
     gh auth login
     >Github.com
     >SSH
-    Create new token????
-    Title for SSH Key: Alo-RPi		
+    >y
+    >Robo-RPi		
     >Paste an Authentication Token
     
     1. Generate a Personal Access Token on GitHub
@@ -52,24 +58,25 @@ Install GitHub with CLI:
 Log in to GitHub: Go to GitHub.com and log in to your account.
 
 Navigate to Developer Settings:
-In the top-right corner of any page, click on your profile photo and select Settings.
-Scroll down in the left-hand sidebar, and click Developer settings.
+
+    In the top-right corner of any page, click on your profile photo and select Settings.
+    Scroll down in the left-hand sidebar, and click Developer settings.
 
 Generate a Token:
-Click on Personal access tokens in the sidebar, then click Tokens (classic).
-Click Generate new token.
+
+    Click on Personal access tokens in the sidebar, then click Tokens (classic).
+    Click Generate new token.
 
 Configure the Token:
 
-Give your token a descriptive name.
-Set the expiration (how long the token will be valid). For longer usage, you can set it to "No expiration", but be cautious with security.
-Select the scopes or permissions you'd like the token to have, based on what you need:
-For most operations like pushing to a repository, you’ll need the repo scope.
-If you're working with organizations, you might need workflow, admin:org, or other organization-specific permissions.
+    Give your token a descriptive name.
+    Set the expiration (how long the token will be valid). For longer usage, you can set it to "No expiration", but be cautious with security.
+    Check repo, admin:org, admin:public_key
+
 Generate the Token:
 
-Once you’ve selected the scopes, click Generate token.
-Copy the token: GitHub will only show this token once, so copy it and save it in a secure location like a password manager.
+    Once you’ve selected the scopes, click Generate token.
+    Copy the token: GitHub will only show this token once, so copy it and save it in a secure location like a password manager.
     
 Installing ROS2 with Docker:    
     https://docs.ros.org/en/foxy/How-To-Guides/Installing-on-Raspberry-Pi.html
@@ -234,9 +241,6 @@ docker exec -it ros2_humble_container bash
 
 Source the ROS 2 environment with
 source /opt/ros/humble/setup.bash
-
-
-scp pi@192.168.2.3:/home/pi/ros2_humble_docker_image.tar ~/Desktop/bot-hoven-ros-pi4/
 
 <!-- Run the file
 cd /root

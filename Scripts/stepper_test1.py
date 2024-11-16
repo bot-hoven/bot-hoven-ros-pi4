@@ -1,51 +1,31 @@
 import RPi.GPIO as GPIO
 import time
 
-# Set GPIO pins
-IN1 = 17
-IN2 = 18
-IN3 = 27
-IN4 = 22
+# Define GPIO Pins
+PUL_PIN = 21  # Pulse
+DIR_PIN = 20  # Direction
+ENA_PIN = 24  # Enable
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(IN1, GPIO.OUT)
-GPIO.setup(IN2, GPIO.OUT)
-GPIO.setup(IN3, GPIO.OUT)
-GPIO.setup(IN4, GPIO.OUT)
+# Setup GPIO
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(PUL_PIN, GPIO.OUT)
+GPIO.setup(DIR_PIN, GPIO.OUT)
+GPIO.setup(ENA_PIN, GPIO.OUT)
 
-def step_motor(steps):
-    for _ in range(steps):
-        GPIO.output(IN1, GPIO.HIGH)
-        GPIO.output(IN2, GPIO.LOW)
-        GPIO.output(IN3, GPIO.LOW)
-        GPIO.output(IN4, GPIO.LOW)
-        time.sleep(0.001)
+# Enable the motor
+GPIO.output(ENA_PIN, GPIO.HIGH)
 
-        GPIO.output(IN1, GPIO.LOW)
-        GPIO.output(IN2, GPIO.HIGH)
-        GPIO.output(IN3, GPIO.LOW)
-        GPIO.output(IN4, GPIO.LOW)
-        time.sleep(0.001)
+# Set direction (CW)
+GPIO.output(DIR_PIN, GPIO.HIGH)
 
-        GPIO.output(IN1, GPIO.LOW)
-        GPIO.output(IN2, GPIO.LOW)
-        GPIO.output(IN3, GPIO.HIGH)
-        GPIO.output(IN4, GPIO.LOW)
-        time.sleep(0.001)
+# Generate pulses
+for i in range(1600):  # 1600 pulses for one revolution (1.8-degree step angle)
+    GPIO.output(PUL_PIN, GPIO.HIGH)
+    time.sleep(0.001)  # Pulse width (adjust for motor speed)
+    GPIO.output(PUL_PIN, GPIO.LOW)
+    time.sleep(0.001)  # Adjust for desired speed
 
-        GPIO.output(IN1, GPIO.LOW)
-        GPIO.output(IN2, GPIO.LOW)
-        GPIO.output(IN3, GPIO.LOW)
-        GPIO.output(IN4, GPIO.HIGH)
-        time.sleep(0.001)
+# Disable the motor
+GPIO.output(ENA_PIN, GPIO.LOW)
 
-try:
-    while True:
-        print(f"Stepper Test Cycle: Started")
-        step_motor(2048)  # Number of steps for a full rotation (depends on the motor)
-        print(f"Stepper Test Cycle: Finished")
-        time.sleep(2)
-except KeyboardInterrupt:
-    pass
-finally:
-    GPIO.cleanup()
+GPIO.cleanup()
