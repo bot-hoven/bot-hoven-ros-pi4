@@ -21,14 +21,14 @@ Manually setup the direct LAN connection settings:
 
     Change the file to be:
     network:
-    version: 2
-    ethernets:
-        eth0:
-        dhcp4: false
-        addresses: [192.168.2.4/24]
-        gateway4: 192.168.2.1
-        nameservers:
-            addresses: [8.8.8.8, 8.8.4.4]
+        version: 2
+        ethernets:
+            eth0:
+            dhcp4: false
+            addresses: [192.168.2.4/24]
+            gateway4: 192.168.2.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4]
 
 Connect to the Pi via SSH:
 
@@ -264,6 +264,19 @@ ros2 run ros2_gpio_uart_motor_pkg stepper_node
 ros2 topic pub --once /stepper_motor_cmd std_msgs/String "data: 'CCW, 200, 0.001'"
 
 ros2 topic pub --once /solenoid_cmd std_msgs/String "data: 'press'"
+
+
+
+
+
+
+
+sudo docker run --rm -it --privileged --device /dev/gpiomem --name ros2_container -v /home/pi/ros2_ws:/root/ros2_ws arm64v8/ros
+
+
+docker run --rm -it --privileged --device /dev/gpiomem -v /sys:/sys --name my_ros2_container <your_image_name>
+
+
 
 
 

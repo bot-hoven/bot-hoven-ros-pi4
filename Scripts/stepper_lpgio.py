@@ -20,7 +20,7 @@ class StepperMotorController(Node):
         lgpio.gpio_claim_output(self.gpio_chip, PUL_PIN)
         lgpio.gpio_claim_output(self.gpio_chip, DIR_PIN)
         # Uncomment for enabling motor if needed
-        lgpio.gpio_claim_output(self.gpio_chip, ENA_PIN)
+        # lgpio.gpio_claim_output(self.gpio_chip, ENA_PIN)
         lgpio.gpio_write(self.gpio_chip, DIR_PIN, CW_DIR)
 
         # Subscribe to topic for movement commands
@@ -36,11 +36,6 @@ class StepperMotorController(Node):
         direction, steps, pulse_width = msg.data.split(',')
         steps = int(steps)
         pulse_width = float(pulse_width)
-        
-
-        lgpio.gpio_write(self.gpio_chip, ENA_PIN, CW_DIR if direction == 'CW' else CCW_DIR)  # HIGH
-
-        self.get_logger().info(f'Moving {steps} steps {direction}.')
 
         # Set direction
         lgpio.gpio_write(self.gpio_chip, DIR_PIN, CW_DIR if direction == 'CW' else CCW_DIR)

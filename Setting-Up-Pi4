@@ -98,7 +98,7 @@ Installing ROS2 with Docker:
 Clone the docker_images git repo onto the Raspberry Pi, change in to the directory linked above, then to the directory with your preferred variant.
     gh repo clone osrf/docker_images
     cd docker_images/
-    docker build -t ros_docker .
+    docker build -t ros_docker 
 
 ????? DOUBLE CHECK THIS STUFF????
 
