@@ -1,5 +1,5 @@
-// #ifndef HARDWARE__I2C__I2CPERIPHERAL_H
-// #define HARDWARE__I2C__I2CPERIPHERAL_H
+#ifndef I2C_PERIPHERAL_H
+#define I2C_PERIPHERAL_H
 
 #include <cstdint>
 #include <string>
@@ -26,4 +26,4 @@ private:
 
 // }  // namespace hardware
 
-// #endif  // HARDWARE__I2C__I2CPERIPHERAL_H
+#endif  // I2C_PERIPHERAL_H

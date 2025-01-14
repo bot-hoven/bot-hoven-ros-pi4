@@ -1,5 +1,5 @@
-// #ifndef HARDWARE__PCA9685__PCA9685_CONSTANTS_H
-// #define HARDWARE__PCA9685__PCA9685_CONSTANTS_H
+#ifndef HARDWARE__PCA9685__PCA9685_CONSTANTS_H
+#define HARDWARE__PCA9685__PCA9685_CONSTANTS_H
 #include <cstdint>
 
 // namespace mcp23017_hardware_interface {
@@ -20,4 +20,4 @@ constexpr uint8_t OLATB              = 0x15;
 
 // }  // namespace mcp23017_hardware_interface
 
-// #endif //HARDWARE__PCA9685__PCA9685_CONSTANTS_H
+#endif //HARDWARE__PCA9685__PCA9685_CONSTANTS_H

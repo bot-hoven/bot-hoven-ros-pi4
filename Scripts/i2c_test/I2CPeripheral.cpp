@@ -1,4 +1,4 @@
-#include "include/I2CPeripheral.h"
+#include "I2CPeripheral.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -13,7 +13,6 @@ extern "C" {
 
 I2CPeripheral::I2CPeripheral(const std::string& device) {
   OpenBus(device);
-  // ConnectToPeripheral(address);
 }
 
 I2CPeripheral::~I2CPeripheral() {

@@ -1,28 +1,37 @@
-// #ifndef HARDWARE__MCP23017__MCP23017_COMM_H
-// #define HARDWARE__MCP23017__MCP23017_COMM_H
+#ifndef HARDWARE__MCP23017__MCP23017_COMM_H
+#define HARDWARE__MCP23017__MCP23017_COMM_H
 
-#include <string>
 #include <memory>
+#include <string>
 
-#include "include/mcp23017_constants.h"
-#include "include/I2CPeripheral.h"
+#include "I2CPeripheral.h"
+#include "mcp23017_constants.h"
 
 // namespace mcp23017_hardware_interface {
 
-class MCP23017 {
-public:
-    MCP23017(std::shared_ptr<hardware::I2CPeripheral> i2c_device, int address);
-    ~MCP23017();
+    class MCP23017 {
+    public:
+        MCP23017();
+        ~MCP23017();
 
-    void set_gpio_state(uint8_t gpio_value_);
+        void setup(std::shared_ptr<I2CPeripheral> i2c_bus, const int i2c_address);
 
-private:
-    std::shared_ptr<hardware::I2CPeripheral> i2c_dev;
-    int address = 0x20;
-    
+        void connect();
 
-};
+        void disconnect();
+
+        bool connected() const;
+
+        void init();
+
+        void set_gpio_state(uint8_t gpio_value_);
+
+    private:
+        bool is_connected = false;
+        std::shared_ptr<I2CPeripheral> i2c_dev;
+        int address = 0x20;
+    };
 
 // }  // namespace mcp23017_hardware_interface
 
-// #endif //HARDWARE__MCP23017__MCP23017_COMM_H
+#endif  // HARDWARE__MCP23017__MCP23017_COMM_H
